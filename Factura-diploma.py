@@ -3,6 +3,7 @@ import pandas as pd
 import xlrd
 import os
 import re
+import PySimpleGUI as sg
 from os.path import basename
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -81,12 +82,6 @@ def get_names(xlsx='Archivos Adjuntos.xlsx'):
 	return names
 
 
-plain_text='''
-Holi, si esto salió bien, les debería llegar un mail en el que acá dice su nombre: {name}\n
-También debería haber dos archivos adjuntos. No importa lo que son, el tema es que se llamen\n
-apellido-f y apellido-d.\n
-Nada eso les mando un besito
-'''
 def Enviar_mails(asunto, body,
 html_or_plain='plain', xlsx='Archivos Adjuntos.xlsx'):#diff_ mails para desarrollar dssp (con el commaspace)
 
@@ -101,4 +96,28 @@ html_or_plain='plain', xlsx='Archivos Adjuntos.xlsx'):#diff_ mails para desarrol
 		send_mail('abbatelucas@gmail.com', adress, asunto, body.format(name = name), files, html)
 		print('Mensaje enviado a: '+ adress)
 	
-Enviar_mails('abbatelucas','msyqgosadudbkbsf', 'Intento n2', plain_text, 'plain')
+
+
+layout = [
+		[sg.T('Parámetros', size=(20, 1))],
+		[sg.In('Nombre', key='NAME')],
+		[sg.Button('script1'), sg.Button('script2')], 
+        [sg.Text('Script output....', size=(20, 1))],      
+        [sg.Output(size=(20, 20))]
+        #[sg.Text('Manual command', size=(15, 1)), sg.InputText(focus=True), sg.Button('Run', bind_return_key=True)]
+		]
+
+# Show the Window to the user
+window = sg.Window('Mail', layout)
+
+# Event loop. Read buttons, make callbacks
+while True:      
+	(event, value) = window.Read()      
+	if event is None:      
+		break # exit button clicked      
+	if event == 'script1':      
+		script1(value['NAME'])    
+	elif event == 'script2':      
+		script2(value['NAME'])     
+
+window.Close()
