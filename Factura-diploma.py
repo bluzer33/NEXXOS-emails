@@ -11,10 +11,10 @@ from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 
 # Logeo
-Obj = smtplib.SMTP('smtp.gmail.com', 587)
-Obj.starttls()
-print(Obj.ehlo())  #250 = el hello anda
-print(Obj.login('abbatelucas', 'msyqgosadudbkbsf'))
+# Obj = smtplib.SMTP('smtp.gmail.com', 587)
+# Obj.starttls()
+# print(Obj.ehlo())  #250 = el hello anda
+# print(Obj.login('abbatelucas', 'msyqgosadudbkbsf'))
 
 def send_mail(send_from, send_to, subject, text, files=None, html=False): #server="127.0.0.1"):
 	#assert isinstance(send_to, list)
@@ -97,27 +97,58 @@ html_or_plain='plain', xlsx='Archivos Adjuntos.xlsx'):#diff_ mails para desarrol
 		print('Mensaje enviado a: '+ adress)
 	
 
+login_layout = [
+			[sg.T('Mail (sin el "@gmail.com")')],
+			[sg.In(key='USERNAME', size=(30, 1))],
+			[sg.T('Contraseña de acceso remoto')],
+			[sg.In(key='PASS', size=(30, 1))],
+			[sg.Button('Log In')],
+			[sg.Output(size=(30, 2))]
+]
 
-layout = [
-		[sg.T('Parámetros', size=(20, 1))],
-		[sg.In('Nombre', key='NAME')],
-		[sg.Button('script1'), sg.Button('script2')], 
-        [sg.Text('Script output....', size=(20, 1))],      
-        [sg.Output(size=(20, 20))]
-        #[sg.Text('Manual command', size=(15, 1)), sg.InputText(focus=True), sg.Button('Run', bind_return_key=True)]
-		]
 
-# Show the Window to the user
-window = sg.Window('Mail', layout)
 
-# Event loop. Read buttons, make callbacks
+
+
+login_window = sg.Window('Log In', login_layout)
+
 while True:      
-	(event, value) = window.Read()      
+	(event, value) = login_window.Read()      
 	if event is None:      
 		break # exit button clicked      
-	if event == 'script1':      
-		script1(value['NAME'])    
-	elif event == 'script2':      
-		script2(value['NAME'])     
+	if event == 'Log In':      
+		Obj = smtplib.SMTP('smtp.gmail.com', 587)
+		Obj.starttls()
+		Obj.ehlo()  #250 = el hello anda
+		log_status = Obj.login(value['USERNAME'], value['PASS'])
+		print(log_status)
+		if log_status == (235, b'2.7.0 Accepted'):
+			sg.Popup('Logeo correctamente, tocá el botón para continuar')
+			#login_window['-LOGIN-'].Update('Continuar')
+			#if event is 'Continuar':
+			login_window.Close()
+			layout = [
+				[sg.T('Parámetros', size=(20, 1))],
+				[sg.In('Nombre', key='NAME')],
+				[sg.Button('Correos'), sg.Button('Nombres')], 
+				[sg.Text('Script output....', size=(20, 1))],      
+				[sg.Output(size=(20, 20))]
+				#[sg.Text('Manual command', size=(15, 1)), sg.InputText(focus=True), sg.Button('Run', bind_return_key=True)]
+				]
+			window = sg.Window('Mail Sender', layout)
+			while True:      
+				(event, value) = window.Read()      
+				if event is None:      
+					break # exit button clicked      
+				if event == 'Correos':      
+					print(get_contacts()) 
+				elif event == 'Nombres':      
+					print(get_names()) 
 
-window.Close()
+
+
+# Show the Window to the user
+
+
+# Event loop. Read buttons, make callbacks
+
