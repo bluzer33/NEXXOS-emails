@@ -143,9 +143,18 @@ while True:
 					elif value_2['HTML'] == True:
 						html = True
 					if value_2['XLSX'] == '':
-						Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html)
+						try:
+							Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html)
+						except:
+							print('Hubo un error. Los mails se mandaron hasta el último que aparece. Sino, en el "log.txt" están los detalles')
 					else:
-						Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html, value_2['XLSX'])
+						try:
+							Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html, value_2['XLSX'])
+						except:
+							print('Hubo un error. Los mails se mandaron hasta el último que aparece. Sino, en el "log.txt" están los detalles')
+		else:
+			print('Error en el logeo, probá de vuelta')
+
 				 
 
 
