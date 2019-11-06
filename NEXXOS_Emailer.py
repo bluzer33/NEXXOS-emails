@@ -1,10 +1,6 @@
 import smtplib
-import pandas as pd
 import xlrd
-import os
-import re
 import PySimpleGUI as sg
-from os.path import basename
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -62,12 +58,10 @@ def get_files(xlsx='Archivos Adjuntos.xlsx'):
 	for line in range(1, sheet.nrows):
 		vector = []
 		for col in range (3, sheet.ncols):
-				f = str(sheet.cell_value(line, col)) + '.png'
-				if '-d' in f:
-					f = 'Diplomas/' + f
-				elif '-f' in f:
-					f = 'Facturas/' + f
-				vector.append(f)
+				g = str(sheet.cell_value(line, col))
+				f = str(sheet.cell_value(0, col))
+				h = r'{}\{}'.format(f, g)
+				vector.append(h)
 		files.append(vector)
 	return files
 
@@ -82,40 +76,39 @@ def get_names(xlsx='Archivos Adjuntos.xlsx'):
 	return names
 
 
-def Enviar_mails(asunto, body,
-html_or_plain='plain', xlsx='Archivos Adjuntos.xlsx'):#diff_ mails para desarrollar dssp (con el commaspace)
+def Enviar_mails(asunto, body_route, html_or_plain='plain', xlsx='Archivos Adjuntos.xlsx'):#diff_ mails para desarrollar dssp (con el commaspace)
 
 	if html_or_plain == 'plain':
 		html = False
-	elif html_or_plain.lower() == 'html':
+	elif html_or_plain == 'html':
 		html = True
 	else:
 		html = False
-
+	f = open(r'{}'.format(body_route), 'r')
+	body = f.read()
 	for adress, files, name in zip(get_contacts(xlsx), get_files(xlsx), get_names(xlsx)):
-		send_mail('abbatelucas@gmail.com', adress, asunto, body.format(name = name), files, html)
+		send_mail(value['USERNAME'], adress, asunto, body.format(name = name), files, html)
 		print('Mensaje enviado a: '+ adress)
 	
 
 login_layout = [
 			[sg.T('Mail (sin el "@gmail.com")')],
-			[sg.In(key='USERNAME', size=(30, 1))],
-			[sg.T('Contraseña de acceso remoto')],
-			[sg.In(key='PASS', size=(30, 1))],
-			[sg.Button('Log In')],
-			[sg.Output(size=(30, 2))]
+			[sg.In(key='USERNAME', size=(60, 1))],
+			[sg.T('Contraseña de aplicación')],
+			[sg.In(key='PASS', size=(60, 1))],
+			[sg.Button('Log In'), sg.Button('¿Qué contraseña?')],
+			[sg.Output(size=(60, 3), key='OUTPUT')]
 ]
-
-
-
 
 
 login_window = sg.Window('Log In', login_layout)
 
 while True:      
-	(event, value) = login_window.Read()      
+	(event, value) = login_window.Read()
 	if event is None:      
 		break # exit button clicked      
+	if event == '¿Qué contraseña?':
+		print('Entrá a: \nhttps://support.google.com/accounts/answer/185833?hl=es\nCuando pregunte para que aplicación, pone "Otra"')
 	if event == 'Log In':      
 		Obj = smtplib.SMTP('smtp.gmail.com', 587)
 		Obj.starttls()
@@ -124,31 +117,37 @@ while True:
 		print(log_status)
 		if log_status == (235, b'2.7.0 Accepted'):
 			sg.Popup('Logeo correctamente, tocá el botón para continuar')
-			#login_window['-LOGIN-'].Update('Continuar')
-			#if event is 'Continuar':
 			login_window.Close()
 			layout = [
-				[sg.T('Parámetros', size=(20, 1))],
-				[sg.In('Nombre', key='NAME')],
-				[sg.Button('Correos'), sg.Button('Nombres')], 
-				[sg.Text('Script output....', size=(20, 1))],      
-				[sg.Output(size=(20, 20))]
-				#[sg.Text('Manual command', size=(15, 1)), sg.InputText(focus=True), sg.Button('Run', bind_return_key=True)]
+				[sg.T('Asunto:', size=(60, 1))],
+				[sg.In('', key='ASUNTO')],
+				[sg.Rad('Texto Plano', 'HTML-PLAIN', key='PLAIN', default=True), sg.Rad('HTML', 'HTML-PLAIN', key='HTML')],
+				[sg.T('Ruta del texto/HTML (incluir el nombre del archivo y la extensión)')],
+				[sg.In('', key='BODY')], 
+				[sg.T('Ruta del Excel (incluir el nombre del archivo y la extensión):', size=(60, 1))],
+				[sg.In('', key='XLSX')],
+				[sg.B('Formato del Excel')],
+				[sg.B('Enviar')],    
+				[sg.Output(size=(60, 5))]
 				]
-			window = sg.Window('Mail Sender', layout)
+			window = sg.Window('NEXXOS Bulk Mail', layout)
 			while True:      
-				(event, value) = window.Read()      
-				if event is None:      
+				(event_2, value_2) = window.Read()      
+				if event_2 is None:      
 					break # exit button clicked      
-				if event == 'Correos':      
-					print(get_contacts()) 
-				elif event == 'Nombres':      
-					print(get_names()) 
+				if event_2 == 'Formato del Excel':
+					print('Apellido|Nombre|Mail\nLas columnas restantes son para archivos adjuntos, tienen que tener en la primera fila la ruta de la carpeta, y en las celdas los nombres de los archivos con las extensiones')
+				if event_2 == 'Enviar':
+					if value_2['PLAIN'] == True:
+						html = False
+					elif value_2['HTML'] == True:
+						html = True
+					if value_2['XLSX'] == '':
+						Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html)
+					else:
+						Enviar_mails(value_2['ASUNTO'], value_2['BODY'], html, value_2['XLSX'])
+				 
 
 
-
-# Show the Window to the user
-
-
-# Event loop. Read buttons, make callbacks
-
+#Falta generar log para controlar hasta donde se mandaron los mails, y adjuntar un xlsx basico. Readme. Reemplazo de nombres y apellidos.
+#Error handling, selección de files opcional, 
