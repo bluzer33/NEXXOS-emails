@@ -6,11 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 
-# Logeo
-# Obj = smtplib.SMTP('smtp.gmail.com', 587)
-# Obj.starttls()
-# print(Obj.ehlo())  #250 = el hello anda
-# print(Obj.login('abbatelucas', 'msyqgosadudbkbsf'))
 
 def send_mail(send_from, send_to, subject, text, files=None, html=False): #server="127.0.0.1"):
 	#assert isinstance(send_to, list)
