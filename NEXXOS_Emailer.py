@@ -25,25 +25,32 @@ def send_mail(send_from, send_to, subject, text, files=None, html=False): #serve
 		raise TypeError('HTML tiene que ser True o False')
 
 	for f in files or []:
-		with open(f, "rb") as fil:
-			part = MIMEApplication(
-				fil.read(),
-				Name=basename(f)
-				)
-        # After the file is closed
-		part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
-		msg.attach(part)
-
-	Obj.sendmail(send_from, send_to, msg.as_string())
-	
+		try:
+			with open(f, "rb") as fil:
+				part = MIMEApplication(
+					fil.read(),
+					Name=basename(f)
+					)
+			# After the file is closed
+			part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
+			msg.attach(part)
+		except:
+			pass
+	try:
+		Obj.sendmail(send_from, send_to, msg.as_string())
+	except:
+		pass
 
 def get_contacts(xlsx='Archivos Adjuntos.xlsx'):
 	contacts = []
 	wb = xlrd.open_workbook(xlsx)
 	sheet = wb.sheet_by_index(0)
 	for line in range(1, sheet.nrows):
-		contact = sheet.cell_value(line, 2)
-		contacts.append(str(contact))
+		try:
+			contact = sheet.cell_value(line, 2)
+			contacts.append(str(contact))
+		except:
+			contacts.append('')
 	return contacts
 
 def get_files(xlsx='Archivos Adjuntos.xlsx'):
@@ -53,10 +60,13 @@ def get_files(xlsx='Archivos Adjuntos.xlsx'):
 	for line in range(1, sheet.nrows):
 		vector = []
 		for col in range (3, sheet.ncols):
+			try:
 				g = str(sheet.cell_value(line, col))
 				f = str(sheet.cell_value(0, col))
 				h = r'{}\{}'.format(f, g)
 				vector.append(h)
+			except:
+				vector.append('')
 		files.append(vector)
 	return files
 
@@ -65,9 +75,12 @@ def get_names(xlsx='Archivos Adjuntos.xlsx'):
 	wb = xlrd.open_workbook(xlsx)
 	sheet = wb.sheet_by_index(0)
 	for line in range(1, sheet.nrows):
-		surname = sheet.cell_value(line, 0)
-		name = sheet.cell_value(line, 1)
-		names.append(str(name + ' ' + surname))
+		try:
+			surname = sheet.cell_value(line, 0)
+			name = sheet.cell_value(line, 1)
+			names.append(str(name + ' ' + surname))
+		except:
+			names.append('')
 	return names
 
 
@@ -82,9 +95,11 @@ def Enviar_mails(asunto, body_route, html_or_plain='plain', xlsx='Archivos Adjun
 	f = open(r'{}'.format(body_route), 'r')
 	body = f.read()
 	for adress, files, name in zip(get_contacts(xlsx), get_files(xlsx), get_names(xlsx)):
-		send_mail(value['USERNAME'], adress, asunto, body.format(name = name), files, html)
-		print('Mensaje enviado a: '+ adress)
-	
+		try:
+			send_mail(value['USERNAME'], adress, asunto, body.format(name = name), files, html)
+			print('Mensaje enviado a: '+ adress)
+		except:
+			print('Hubo un error, y no se envió el mail a: '+ adress + '\nFijate que el Excel esté correcto y que el mail sea valido')
 
 login_layout = [
 			[sg.T('Mail (sin el "@gmail.com")')],
